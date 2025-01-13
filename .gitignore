@@ -69,3 +69,5 @@ models
 data
 config.ini
 .DS_Store
+
+/analysis_results
