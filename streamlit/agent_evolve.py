@@ -38,11 +38,17 @@ def save_results(log_file: Path, stage: str, data: dict):
     except Exception as e:
         st.error(f"Error saving results for stage {stage}: {str(e)}")
 
+def load_prompt_template(file_path: str) -> PromptTemplate:
+    prompt_path = Path("prompts") / file_path
+    with open(prompt_path, "r") as f:
+        template = f.read()
+    return PromptTemplate.from_template(template)
+
 async def generate_agent_response(prompt_template: PromptTemplate, query: str, agent_id: int):
     try:
         model = ChatOpenAI(temperature=0.7)
-        formatted_prompt = prompt_template.format(query=query)
-        response = await model.ainvoke(formatted_prompt)
+        prompt = prompt_template.format(query=query)
+        response = await model.ainvoke(prompt)
         return str(response), agent_id, None
     except Exception as e:
         return None, agent_id, f"Agent {agent_id} failed: {str(e)}"
@@ -86,17 +92,17 @@ async def evaluate_responses(responses: List[Tuple[str, int]], log_file: Path, s
     try:
         start_time = time.time()
         
-        evaluator_prompt = """
+        evaluator_template = PromptTemplate.from_template("""
         Review these responses and extract the best insights:
         {responses}
         
         Provide a synthesis of the best insights that can be used for further analysis.
-        """
+        """)
         
         formatted_responses = "\n\n".join([f"Response {i}:\n{resp}" for resp, i in responses])
         
         model = ChatOpenAI(temperature=0.3)
-        evaluation = await model.ainvoke(evaluator_prompt.format(responses=formatted_responses))
+        evaluation = await model.ainvoke(evaluator_template.format(responses=formatted_responses))
         
         end_time = time.time()
         
@@ -114,15 +120,15 @@ async def process_final_response(insights: str, prompt_template: PromptTemplate,
     try:
         start_time = time.time()
         
-        final_prompt = """
+        final_template = PromptTemplate.from_template("""
         Using these key insights:
         {insights}
         
         Provide a comprehensive final answer to the original question.
-        """
+        """)
         
         model = ChatOpenAI(temperature=0.5)
-        final_response = await model.ainvoke(final_prompt.format(insights=insights))
+        final_response = await model.ainvoke(final_template.format(insights=insights))
         
         end_time = time.time()
         
@@ -135,12 +141,6 @@ async def process_final_response(insights: str, prompt_template: PromptTemplate,
     except Exception as e:
         st.error(f"Final response generation failed: {str(e)}")
         raise
-
-async def load_prompt_template(file_path: str) -> PromptTemplate:
-    prompt_path = Path("prompts") / file_path
-    with open(prompt_path, "r") as f:
-        template = f.read()
-    return PromptTemplate.from_template(template)
 
 async def run_analysis(query: str):
     log_file = create_log_file()
