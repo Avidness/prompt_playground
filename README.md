@@ -1,5 +1,5 @@
 # Prompt Playground
-Experimenting with CoA (Chain of Agents) 
+Experimenting with CoA (Chain of Agents), CoT, etc.
 
 https://research.google/blog/chain-of-agents-large-language-models-collaborating-on-long-context-tasks/
 
