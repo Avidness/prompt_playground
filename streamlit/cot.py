@@ -23,11 +23,9 @@ async def generate_response(prompt_template: PromptTemplate, query: str):
     return str(response), execution_time
 
 async def process_prompts(query: str):
-    # Load both prompt templates
     cot_v1 = await load_prompt_template("cotv1.md")
     cot_v2 = await load_prompt_template("cotv2.md")
     
-    # Run both prompts concurrently
     results = await asyncio.gather(
         generate_response(cot_v1, query),
         generate_response(cot_v2, query)
@@ -42,10 +40,8 @@ with st.form("my_form"):
     )
     submitted = st.form_submit_button("Submit")
     if submitted:
-        # Run async code in sync context
         results = asyncio.run(process_prompts(text))
         
-        # Display results
         st.subheader("Chain of Thought v1")
         response_v1, time_v1 = results[0]
         st.info(response_v1)

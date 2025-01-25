@@ -9,9 +9,8 @@ from datetime import datetime
 import json
 import os
 
-st.title("🤖 Multi-Agent Analysis System")
+st.title("ttc")
 
-# Setup logging directory
 RESULTS_DIR = Path("analysis_results")
 RESULTS_DIR.mkdir(exist_ok=True)
 
@@ -63,7 +62,6 @@ async def run_agent_batch(prompt_template: PromptTemplate, query: str, log_file:
     
     results = await asyncio.gather(*tasks)
     
-    # Filter out failed responses and collect errors
     successful_responses = []
     errors = []
     
@@ -146,25 +144,19 @@ async def run_analysis(query: str):
     log_file = create_log_file()
     
     try:
-        # Log initial query
         save_results(log_file, "initial_query", {'query': query})
         
-        # Load prompt template
         initial_prompt = load_prompt_template("cotv1.md")
         
-        # First batch of agents
         st.write("Running first batch of agents...")
         first_batch_results = await run_agent_batch(initial_prompt, query, log_file, "first")
         
-        # Evaluate first batch
         st.write("Evaluating first batch results...")
         first_evaluation = await evaluate_responses(first_batch_results, log_file, "first")
         
-        # Second batch using insights
         st.write("Running second batch with refined insights...")
         second_batch_results = await run_agent_batch(initial_prompt, first_evaluation, log_file, "second")
         
-        # Final evaluation and response
         st.write("Generating final response...")
         second_evaluation = await evaluate_responses(second_batch_results, log_file, "second")
         final_response = await process_final_response(second_evaluation, initial_prompt, log_file)
@@ -176,7 +168,6 @@ async def run_analysis(query: str):
         save_results(log_file, "error", {'error': str(e)})
         raise
 
-# Streamlit interface
 with st.form("analysis_form"):
     query = st.text_area("Enter your query:", height=100)
     submitted = st.form_submit_button("Analyze")
